@@ -1,18 +1,14 @@
 package com.cactus.peyokeys
 
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.inputmethodservice.InputMethodService
 import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
-import android.widget.LinearLayout
 
 class PeyoKeysService : InputMethodService() {
 
-    private var isShifted = false
+    private var isShifted = true  // Start with capital letters
     private val letterButtons = mutableMapOf<Char, Button>()
 
     companion object {
@@ -26,7 +22,9 @@ class PeyoKeysService : InputMethodService() {
 
     override fun onCreateInputView(): View {
         Log.d(TAG, "onCreateInputView() called")
-        return createKeyboardView()
+        val view = layoutInflater.inflate(R.layout.keyboard, null)
+        setupKeyboard(view)
+        return view
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
@@ -37,6 +35,7 @@ class PeyoKeysService : InputMethodService() {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         Log.d(TAG, "onStartInputView() called")
+        checkAndUpdateShiftState()
     }
 
     override fun onEvaluateFullscreenMode(): Boolean {
@@ -47,156 +46,135 @@ class PeyoKeysService : InputMethodService() {
     override fun onEvaluateInputViewShown(): Boolean {
         super.onEvaluateInputViewShown()
         Log.d(TAG, "onEvaluateInputViewShown() called")
-        return true  // Always show the input view
+        return true
     }
 
-    private fun createKeyboardView(): View {
-        Log.d(TAG, "createKeyboardView() - Creating keyboard layout")
+    private fun setupKeyboard(view: View) {
+        // Letter keys - Row 1
+        setupLetterKey(view, R.id.key_q, "Q")
+        setupLetterKey(view, R.id.key_w, "W")
+        setupLetterKey(view, R.id.key_e, "E")
+        setupLetterKey(view, R.id.key_r, "R")
+        setupLetterKey(view, R.id.key_t, "T")
+        setupLetterKey(view, R.id.key_y, "Y")
+        setupLetterKey(view, R.id.key_u, "U")
+        setupLetterKey(view, R.id.key_i, "I")
+        setupLetterKey(view, R.id.key_o, "O")
+        setupLetterKey(view, R.id.key_p, "P")
 
-        val view = layoutInflater.inflate(R.layout.keyboard, null)
+        // Letter keys - Row 2
+        setupLetterKey(view, R.id.key_a, "A")
+        setupLetterKey(view, R.id.key_s, "S")
+        setupLetterKey(view, R.id.key_d, "D")
+        setupLetterKey(view, R.id.key_f, "F")
+        setupLetterKey(view, R.id.key_g, "G")
+        setupLetterKey(view, R.id.key_h, "H")
+        setupLetterKey(view, R.id.key_j, "J")
+        setupLetterKey(view, R.id.key_k, "K")
+        setupLetterKey(view, R.id.key_l, "L")
 
-        // Get row containers
-        val row1 = view.findViewById<LinearLayout>(R.id.row1)
-        val row2 = view.findViewById<LinearLayout>(R.id.row2)
-        val row3 = view.findViewById<LinearLayout>(R.id.row3)
-        val row4 = view.findViewById<LinearLayout>(R.id.row4)
+        // Letter keys - Row 3
+        setupLetterKey(view, R.id.key_z, "Z")
+        setupLetterKey(view, R.id.key_x, "X")
+        setupLetterKey(view, R.id.key_c, "C")
+        setupLetterKey(view, R.id.key_v, "V")
+        setupLetterKey(view, R.id.key_b, "B")
+        setupLetterKey(view, R.id.key_n, "N")
+        setupLetterKey(view, R.id.key_m, "M")
 
-        // Row 1: Q W E R T Y U I O P
-        listOf("Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P").forEach { letter ->
-            row1.addView(createKey(letter))
-        }
-
-        // Row 2: A S D F G H J K L
-        listOf("A", "S", "D", "F", "G", "H", "J", "K", "L").forEach { letter ->
-            row2.addView(createKey(letter))
-        }
-
-        // Row 3: Shift + Z X C V B N M + Delete
-        row3.addView(createSpecialKey("⇧", 1.5f, false) {
+        // Shift key
+        view.findViewById<Button>(R.id.key_shift).setOnClickListener {
             isShifted = !isShifted
             updateLetterCase()
-        })
-        listOf("Z", "X", "C", "V", "B", "N", "M").forEach { letter ->
-            row3.addView(createKey(letter))
         }
-        row3.addView(createSpecialKey("⌫", 1.5f, false) {
+
+        // Backspace key
+        view.findViewById<Button>(R.id.key_backspace).setOnClickListener {
             currentInputConnection?.deleteSurroundingText(1, 0)
-        })
+            checkAndUpdateShiftState()
+        }
 
-        // Row 4: Space + Microphone + Return
-        row4.addView(createSpecialKey("space", 4f, false) {
+        // Numbers/symbols key
+        view.findViewById<Button>(R.id.key_numbers).setOnClickListener {
+            // TODO: Switch to numbers/symbols layout
+            Log.d(TAG, "Numbers key pressed")
+        }
+
+        // Comma key
+        view.findViewById<Button>(R.id.key_comma).setOnClickListener {
+            currentInputConnection?.commitText(",", 1)
+            checkAndUpdateShiftState()
+        }
+
+        // Space key
+        val spaceButton = view.findViewById<Button>(R.id.key_space)
+        spaceButton.setOnClickListener {
             currentInputConnection?.commitText(" ", 1)
-        })
-        row4.addView(createSpecialKey("🎤", 1.5f, false) {
+            checkAndUpdateShiftState()
+        }
+
+        // Long press on space for voice input
+        spaceButton.setOnLongClickListener {
             handleVoiceInput()
-        })
-        row4.addView(createSpecialKey("return", 2f, true) {
+            true
+        }
+
+        // Period key
+        view.findViewById<Button>(R.id.key_period).setOnClickListener {
+            currentInputConnection?.commitText(".", 1)
+            checkAndUpdateShiftState()
+        }
+
+        // Return key
+        view.findViewById<Button>(R.id.key_return).setOnClickListener {
             currentInputConnection?.commitText("\n", 1)
-        })
+            isShifted = true
+            updateLetterCase()
+        }
 
-        Log.d(TAG, "Keyboard layout created")
-        return view
+        // Initialize letter case
+        updateLetterCase()
     }
 
-    private fun createKey(letter: String): Button {
-        val button = Button(this).apply {
-            text = letter
-            setTextColor(Color.BLACK)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-            isAllCaps = false
-            setPadding(0, 0, 0, 0)
-            stateListAnimator = null
-            val margin = dpToPx(3)
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                dpToPx(50),
-                1f
-            ).apply {
-                setMargins(margin, margin, margin, margin)
-            }
+    private fun setupLetterKey(view: View, buttonId: Int, letter: String) {
+        val button = view.findViewById<Button>(buttonId)
+        letterButtons[letter[0]] = button
 
-            background = createRoundedBackground(Color.WHITE, dpToPx(5))
-            elevation = dpToPx(1).toFloat()
-
-            setOnClickListener {
-                val textToInsert = if (isShifted) letter.uppercase() else letter.lowercase()
-                currentInputConnection?.commitText(textToInsert, 1)
-                if (isShifted) {
-                    isShifted = false
-                    updateLetterCase()
-                }
+        button.setOnClickListener {
+            val textToInsert = if (isShifted) letter.uppercase() else letter.lowercase()
+            currentInputConnection?.commitText(textToInsert, 1)
+            if (isShifted) {
+                isShifted = false
+                updateLetterCase()
             }
         }
-
-        button.setTextColor(Color.BLACK)
-
-        if (letter.length == 1 && letter[0].isLetter()) {
-            letterButtons[letter[0].uppercaseChar()] = button
-        }
-
-        return button
-    }
-
-    private fun createSpecialKey(label: String, weight: Float, isBlue: Boolean, onClick: () -> Unit): Button {
-        val button = Button(this).apply {
-            text = label
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-            isAllCaps = false
-            setPadding(0, 0, 0, 0)
-            stateListAnimator = null
-            val margin = dpToPx(3)
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                dpToPx(50),
-                weight
-            ).apply {
-                setMargins(margin, margin, margin, margin)
-            }
-
-            if (isBlue) {
-                setTextColor(Color.WHITE)
-                background = createRoundedBackground(Color.parseColor("#007AFF"), dpToPx(5))
-            } else {
-                setTextColor(Color.BLACK)
-                background = createRoundedBackground(Color.parseColor("#CCCCCC"), dpToPx(5))
-            }
-            elevation = dpToPx(1).toFloat()
-
-            setOnClickListener { onClick() }
-        }
-
-        if (isBlue) {
-            button.setTextColor(Color.WHITE)
-        } else {
-            button.setTextColor(Color.BLACK)
-        }
-
-        return button
     }
 
     private fun updateLetterCase() {
         letterButtons.forEach { (char, button) ->
             button.text = if (isShifted) char.uppercase() else char.lowercase()
-            button.setTextColor(Color.BLACK)
         }
     }
 
-    private fun createRoundedBackground(color: Int, cornerRadius: Int): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            setCornerRadius(cornerRadius.toFloat())
-        }
-    }
+    private fun checkAndUpdateShiftState() {
+        val ic = currentInputConnection ?: return
 
-    private fun dpToPx(dp: Int): Int {
-        return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            dp.toFloat(),
-            resources.displayMetrics
-        ).toInt()
+        val textBefore = ic.getTextBeforeCursor(3, 0)?.toString() ?: ""
+
+        val shouldCapitalize = textBefore.isEmpty() ||
+                textBefore.endsWith(". ") ||
+                textBefore.endsWith("? ") ||
+                textBefore.endsWith("! ") ||
+                textBefore.endsWith("\n")
+
+        if (shouldCapitalize != isShifted) {
+            isShifted = shouldCapitalize
+            updateLetterCase()
+        }
     }
 
     private fun handleVoiceInput() {
-        Log.d(TAG, "Voice input button pressed")
+        Log.d(TAG, "Voice input triggered via long press on space")
+        // TODO: Implement voice input functionality
     }
 }
