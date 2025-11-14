@@ -26,6 +26,7 @@ class PeyoKeysService : InputMethodService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var spaceButton: Button? = null
     private var isTranscribing = false
+    private var isNumbersLayout = false
 
     companion object {
         private const val TAG = "PeyoKeysService"
@@ -46,8 +47,13 @@ class PeyoKeysService : InputMethodService() {
 
     override fun onCreateInputView(): View {
         Log.d(TAG, "onCreateInputView() called")
-        val view = layoutInflater.inflate(R.layout.keyboard, null)
-        setupKeyboard(view)
+        val layoutId = if (isNumbersLayout) R.layout.keyboard_numbers else R.layout.keyboard
+        val view = layoutInflater.inflate(layoutId, null)
+        if (isNumbersLayout) {
+            setupNumbersKeyboard(view)
+        } else {
+            setupKeyboard(view)
+        }
         return view
     }
 
@@ -120,8 +126,8 @@ class PeyoKeysService : InputMethodService() {
 
         // Numbers/symbols key
         view.findViewById<Button>(R.id.key_numbers).setOnClickListener {
-            // TODO: Switch to numbers/symbols layout
-            Log.d(TAG, "Numbers key pressed")
+            isNumbersLayout = true
+            setInputView(onCreateInputView())
         }
 
         // Comma key
@@ -251,6 +257,89 @@ class PeyoKeysService : InputMethodService() {
         } catch (e: Exception) {
             Log.e(TAG, "Error requesting microphone permission", e)
             Toast.makeText(this, "Unable to request permission", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupNumbersKeyboard(view: View) {
+        // Number keys
+        setupSimpleKey(view, R.id.key_1, "1")
+        setupSimpleKey(view, R.id.key_2, "2")
+        setupSimpleKey(view, R.id.key_3, "3")
+        setupSimpleKey(view, R.id.key_4, "4")
+        setupSimpleKey(view, R.id.key_5, "5")
+        setupSimpleKey(view, R.id.key_6, "6")
+        setupSimpleKey(view, R.id.key_7, "7")
+        setupSimpleKey(view, R.id.key_8, "8")
+        setupSimpleKey(view, R.id.key_9, "9")
+        setupSimpleKey(view, R.id.key_0, "0")
+
+        // Symbol keys - Row 2
+        setupSimpleKey(view, R.id.key_at, "@")
+        setupSimpleKey(view, R.id.key_hash, "#")
+        setupSimpleKey(view, R.id.key_dollar, "$")
+        setupSimpleKey(view, R.id.key_underscore, "_")
+        setupSimpleKey(view, R.id.key_ampersand, "&")
+        setupSimpleKey(view, R.id.key_minus, "-")
+        setupSimpleKey(view, R.id.key_plus, "+")
+        setupSimpleKey(view, R.id.key_lparen, "(")
+        setupSimpleKey(view, R.id.key_rparen, ")")
+        setupSimpleKey(view, R.id.key_slash, "/")
+
+        // Symbol keys - Row 3
+        setupSimpleKey(view, R.id.key_asterisk, "*")
+        setupSimpleKey(view, R.id.key_quote, "\"")
+        setupSimpleKey(view, R.id.key_apostrophe, "'")
+        setupSimpleKey(view, R.id.key_colon, ":")
+        setupSimpleKey(view, R.id.key_semicolon, ";")
+        setupSimpleKey(view, R.id.key_exclamation, "!")
+        setupSimpleKey(view, R.id.key_question, "?")
+
+        // Backspace
+        view.findViewById<Button>(R.id.key_backspace_num).setOnClickListener {
+            currentInputConnection?.deleteSurroundingText(1, 0)
+        }
+
+        // ABC key to switch back to letters
+        view.findViewById<Button>(R.id.key_abc).setOnClickListener {
+            isNumbersLayout = false
+            setInputView(onCreateInputView())
+        }
+
+        // Comma
+        view.findViewById<Button>(R.id.key_comma_num).setOnClickListener {
+            currentInputConnection?.commitText(",", 1)
+        }
+
+        // Space key
+        spaceButton = view.findViewById<Button>(R.id.key_space_num)
+        spaceButton?.setOnClickListener {
+            if (!isTranscribing) {
+                currentInputConnection?.commitText(" ", 1)
+            }
+        }
+
+        // Long press on space for voice input
+        spaceButton?.setOnLongClickListener {
+            if (!isTranscribing) {
+                handleVoiceInput()
+            }
+            true
+        }
+
+        // Period
+        view.findViewById<Button>(R.id.key_period_num).setOnClickListener {
+            currentInputConnection?.commitText(".", 1)
+        }
+
+        // Return
+        view.findViewById<Button>(R.id.key_return_num).setOnClickListener {
+            currentInputConnection?.commitText("\n", 1)
+        }
+    }
+
+    private fun setupSimpleKey(view: View, buttonId: Int, text: String) {
+        view.findViewById<Button>(buttonId).setOnClickListener {
+            currentInputConnection?.commitText(text, 1)
         }
     }
 }

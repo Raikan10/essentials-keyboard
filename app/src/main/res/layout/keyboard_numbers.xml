@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/keyboard_background"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- Row 1: Numbers 1-0 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="6dp">
+
+        <Button android:id="@+id/key_1" style="@style/KeyButton" android:text="1" />
+        <Button android:id="@+id/key_2" style="@style/KeyButton" android:text="2" />
+        <Button android:id="@+id/key_3" style="@style/KeyButton" android:text="3" />
+        <Button android:id="@+id/key_4" style="@style/KeyButton" android:text="4" />
+        <Button android:id="@+id/key_5" style="@style/KeyButton" android:text="5" />
+        <Button android:id="@+id/key_6" style="@style/KeyButton" android:text="6" />
+        <Button android:id="@+id/key_7" style="@style/KeyButton" android:text="7" />
+        <Button android:id="@+id/key_8" style="@style/KeyButton" android:text="8" />
+        <Button android:id="@+id/key_9" style="@style/KeyButton" android:text="9" />
+        <Button android:id="@+id/key_0" style="@style/KeyButton" android:text="0" />
+    </LinearLayout>
+
+    <!-- Row 2: @ # £ _ & - + ( ) / -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="6dp">
+
+        <Button android:id="@+id/key_at" style="@style/KeyButton" android:text="\@" />
+        <Button android:id="@+id/key_hash" style="@style/KeyButton" android:text="#" />
+        <Button android:id="@+id/key_dollar" style="@style/KeyButton" android:text="$" />
+        <Button android:id="@+id/key_underscore" style="@style/KeyButton" android:text="_" />
+        <Button android:id="@+id/key_ampersand" style="@style/KeyButton" android:text="&amp;" />
+        <Button android:id="@+id/key_minus" style="@style/KeyButton" android:text="-" />
+        <Button android:id="@+id/key_plus" style="@style/KeyButton" android:text="+" />
+        <Button android:id="@+id/key_lparen" style="@style/KeyButton" android:text="(" />
+        <Button android:id="@+id/key_rparen" style="@style/KeyButton" android:text=")" />
+        <Button android:id="@+id/key_slash" style="@style/KeyButton" android:text="/" />
+    </LinearLayout>
+
+    <!-- Row 3: Symbols * " ' : ; ! ? and backspace -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="6dp">
+
+        <Button android:id="@+id/key_asterisk" style="@style/KeyButton" android:text="*" />
+        <Button android:id="@+id/key_quote" style="@style/KeyButton" android:text="&quot;" />
+        <Button android:id="@+id/key_apostrophe" style="@style/KeyButton" android:text="'" />
+        <Button android:id="@+id/key_colon" style="@style/KeyButton" android:text=":" />
+        <Button android:id="@+id/key_semicolon" style="@style/KeyButton" android:text=";" />
+        <Button android:id="@+id/key_exclamation" style="@style/KeyButton" android:text="!" />
+        <Button android:id="@+id/key_question" style="@style/KeyButton" android:text="\?" />
+        <Button
+            android:id="@+id/key_backspace_num"
+            style="@style/SpecialKeyButton"
+            android:text="⌫"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+    <!-- Row 4: ABC, comma, spacebar, period, return -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/key_abc"
+            style="@style/SpecialKeyButton"
+            android:text="ABC"
+            android:textSize="16sp"
+            android:layout_width="0dp"
+            android:layout_weight="1.5" />
+        <Button
+            android:id="@+id/key_comma_num"
+            style="@style/SpecialKeyButton"
+            android:text=","
+            android:layout_width="0dp"
+            android:layout_weight="0.8" />
+        <Button
+            android:id="@+id/key_space_num"
+            style="@style/KeyButton"
+            android:text="hold to talk"
+            android:textSize="12sp"
+            android:layout_width="0dp"
+            android:layout_weight="3.8" />
+        <Button
+            android:id="@+id/key_period_num"
+            style="@style/SpecialKeyButton"
+            android:text="."
+            android:layout_width="0dp"
+            android:layout_weight="0.8" />
+        <Button
+            android:id="@+id/key_return_num"
+            style="@style/SpecialKeyButton"
+            android:text="↵"
+            android:textSize="24sp"
+            android:layout_width="0dp"
+            android:layout_weight="1.5" />
+    </LinearLayout>
+
+</LinearLayout>
