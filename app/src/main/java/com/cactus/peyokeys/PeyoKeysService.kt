@@ -231,8 +231,12 @@ class PeyoKeysService : InputMethodService() {
                     stt.init(activeModel)
                 }
                 val result = stt.transcribe()
-                result?.let {
-                    currentInputConnection?.commitText(it.text, 1)
+
+                if (result != null && result.text?.isNotBlank() == true) {
+                    currentInputConnection?.commitText(result.text, 1)
+                    Log.d(TAG, "Transcribed text: ${result.text}")
+                } else {
+                    Log.d(TAG, "No speech detected or empty result")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error during voice input transcription", e)
