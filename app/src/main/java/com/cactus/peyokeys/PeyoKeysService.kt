@@ -211,7 +211,8 @@ class PeyoKeysService : InputMethodService() {
         // Check for microphone permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "Microphone permission not granted, requesting permission")
+            Log.d(TAG, "Microphone permission not granted")
+            showSpacebarMessage("Grant mic permission in app")
             requestMicrophonePermission()
             return
         }
@@ -235,7 +236,7 @@ class PeyoKeysService : InputMethodService() {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error during voice input transcription", e)
-                Toast.makeText(this@PeyoKeysService, "Transcription failed", Toast.LENGTH_SHORT).show()
+                showSpacebarMessage("Transcription failed")
             } finally {
                 // Reset transcribing state
                 isTranscribing = false
@@ -243,6 +244,17 @@ class PeyoKeysService : InputMethodService() {
                 spaceButton?.alpha = 1.0f
             }
         }
+    }
+
+    private fun showSpacebarMessage(message: String) {
+        spaceButton?.text = message
+        spaceButton?.alpha = 0.7f
+        spaceButton?.postDelayed({
+            if (!isTranscribing) {
+                spaceButton?.text = "hold to talk"
+                spaceButton?.alpha = 1.0f
+            }
+        }, 3000)
     }
 
     private fun requestMicrophonePermission() {
@@ -253,10 +265,8 @@ class PeyoKeysService : InputMethodService() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             startActivity(intent)
-            Toast.makeText(this, "Please grant microphone permission", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e(TAG, "Error requesting microphone permission", e)
-            Toast.makeText(this, "Unable to request permission", Toast.LENGTH_SHORT).show()
         }
     }
 

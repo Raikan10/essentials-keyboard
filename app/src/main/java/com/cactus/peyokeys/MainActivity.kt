@@ -59,8 +59,8 @@ class MainActivity : AppCompatActivity() {
         stt = CactusSTT()
         loadVoiceModels()
 
-        // Check if this activity was launched for permission request
-        handleIntent(intent)
+        // Request microphone permission upfront if not already granted
+        checkAndRequestMicrophonePermission()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -70,18 +70,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == ACTION_REQUEST_MICROPHONE_PERMISSION) {
-            requestMicrophonePermission()
+            checkAndRequestMicrophonePermission()
         }
     }
 
-    private fun requestMicrophonePermission() {
+    private fun checkAndRequestMicrophonePermission() {
         when {
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
                 Log.d(TAG, "Microphone permission already granted")
-                Toast.makeText(this, "Microphone permission already granted", Toast.LENGTH_SHORT).show()
+                // Permission already granted, no need to show anything
             }
             shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO) -> {
                 // Show an explanation to the user
