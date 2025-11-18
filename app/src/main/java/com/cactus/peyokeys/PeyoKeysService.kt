@@ -462,25 +462,96 @@ class PeyoKeysService : InputMethodService() {
                 }
 
                 // Create prompt for LM
-                val systemPrompt = "You are a helpful writing assistant. Generate the requested content concisely. Only provide the content itself, without any preamble or explanation."
+                val systemPrompt = "/no_think You are a helpful writing assistant. Generate the requested content concisely."
 
-                // Generate completion
-                val result = lm.generateCompletion(
+                // Stop sequences to filter out
+                val stopSequences = listOf("<|im_end|>", "<end_of_turn>")
+
+                // Track thinking tags to filter them out
+                var isInThinkTag = false
+                val buffer = StringBuilder()
+                print("Instruction to llm: $instruction")
+                // Generate completion with streaming
+                lm.generateCompletion(
                     messages = listOf(
                         ChatMessage(content = systemPrompt, role = "system"),
                         ChatMessage(content = instruction!!, role = "user")
-                    )
+                    ),
+                    onToken = { token, _ ->
+                        // Accumulate tokens in buffer
+                        buffer.append(token)
+                        var currentText = buffer.toString()
+
+                        // Check for and remove stop sequences
+                        var hasStopSequence = false
+                        for (stopSeq in stopSequences) {
+                            if (currentText.contains(stopSeq)) {
+                                currentText = currentText.substringBefore(stopSeq)
+                                hasStopSequence = true
+                                break
+                            }
+                        }
+
+                        // Check for opening think tag
+                        if (!isInThinkTag && currentText.contains("<think>")) {
+                            // Output everything before <think>
+                            val beforeThink = currentText.substringBefore("<think>")
+                            if (beforeThink.isNotEmpty()) {
+                                launch(Dispatchers.Main) {
+                                    currentInputConnection?.commitText(beforeThink, 1)
+                                }
+                            }
+                            isInThinkTag = true
+                            buffer.clear()
+                            buffer.append(currentText.substringAfter("<think>"))
+                        }
+                        // Check for closing think tag
+                        else if (isInThinkTag && currentText.contains("</think>")) {
+                            // Skip everything inside think tags, output everything after
+                            isInThinkTag = false
+                            val afterThink = currentText.substringAfter("</think>")
+                            buffer.clear()
+                            if (afterThink.isNotEmpty()) {
+                                buffer.append(afterThink)
+                            }
+                        }
+                        // Output token if not in think tag and buffer is getting long
+                        else if (!isInThinkTag && buffer.length > 10) {
+                            val textToOutput = buffer.toString()
+                            launch(Dispatchers.Main) {
+                                currentInputConnection?.commitText(textToOutput, 1)
+                            }
+                            buffer.clear()
+                        }
+
+                        // If we hit a stop sequence, stop immediately
+                        if (hasStopSequence) {
+                            buffer.clear()
+                        }
+                    }
                 )
 
-                // Insert result on main thread
-                launch(Dispatchers.Main) {
-                    if (result != null && result.success && result.response?.isNotBlank() == true) {
-                        currentInputConnection?.commitText(result.response, 1)
-                        Log.d(TAG, "Draft content inserted: ${result.response?.take(50)}... (${result.tokensPerSecond} tokens/s)")
-                    } else {
-                        Log.d(TAG, "LM returned empty or failed response")
-                        Toast.makeText(this@PeyoKeysService, "Generation failed", Toast.LENGTH_SHORT).show()
+                // Flush any remaining buffer content (if not in think tag)
+                if (!isInThinkTag && buffer.isNotEmpty()) {
+                    var remaining = buffer.toString()
+
+                    // Remove stop sequences from remaining content
+                    for (stopSeq in stopSequences) {
+                        if (remaining.contains(stopSeq)) {
+                            remaining = remaining.substringBefore(stopSeq)
+                        }
                     }
+
+                    if (remaining.isNotEmpty()) {
+                        launch(Dispatchers.Main) {
+                            currentInputConnection?.commitText(remaining, 1)
+                        }
+                    }
+                }
+
+                // Log completion on main thread
+                launch(Dispatchers.Main) {
+                    Log.d(TAG, "Draft streaming completed")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error during draft recording/generation", e)
