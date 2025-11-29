@@ -7,7 +7,7 @@
     android:paddingStart="2dp"
     android:paddingEnd="2dp"
     android:paddingTop="4dp"
-    android:paddingBottom="6dp">
+    android:paddingBottom="48dp">
 
     <!-- Toolbar: Gboard-like toolbar with AI features -->
     <LinearLayout

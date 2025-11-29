@@ -78,6 +78,51 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardElevation="0dp"
+        app:cardCornerRadius="12dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="?attr/colorOutline"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AI Context (Optional)"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enable screen reader to allow AI to understand what you're viewing when drafting messages. All processing happens on-device."
+                android:textSize="14sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginBottom="12dp"
+                android:layout_marginStart="8dp" />
+
+            <Button
+                android:id="@+id/button_enable_accessibility"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enable Screen Reader" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

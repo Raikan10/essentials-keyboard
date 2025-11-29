@@ -399,6 +399,14 @@ class PeyoKeysService : InputMethodService() {
             return
         }
 
+        // Capture screen text for context
+        val screenText = ScreenTextManager.getScreenText(maxAgeMs = 10000)
+        if (screenText != null) {
+            Log.d(TAG, "Captured screen context: ${screenText.takeLast(500)}...")
+        } else {
+            Log.d(TAG, "No screen context available (enable accessibility service)")
+        }
+
         val activeVoiceModel = VoiceModelPreferences.getActiveModel(this) ?: "whisper-base"
         val activeLMModel = LMModelPreferences.getActiveModel(this)
         Log.d(TAG, "Starting draft recording, active model: $activeVoiceModel")
@@ -461,8 +469,16 @@ class PeyoKeysService : InputMethodService() {
                     return@launch
                 }
 
-                // Create prompt for LM
-                val systemPrompt = "/no_think You are a helpful writing assistant. Generate the requested content concisely."
+                // Create prompt for LM with screen context if available
+                val systemPrompt = buildString {
+                    append("/no_think You are a helpful writing assistant. Generate the requested content concisely.")
+
+                    // Add screen context if available
+                    if (screenText != null && screenText.isNotBlank()) {
+                        append("\n\nUse only the text note as  additional context to answer the user's query:\n")
+                        append(screenText.takeLast(500)) // Limit to 500 chars to avoid token overflow
+                    }
+                }
 
                 // Stop sequences to filter out
                 val stopSequences = listOf("<|im_end|>", "<end_of_turn>")
