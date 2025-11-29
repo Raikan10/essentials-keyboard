@@ -65,6 +65,12 @@ class MainActivity : AppCompatActivity() {
             openKeyboardSettings()
         }
 
+        // Setup accessibility settings button
+        val buttonEnableAccessibility: Button = findViewById(R.id.button_enable_accessibility)
+        buttonEnableAccessibility.setOnClickListener {
+            openAccessibilitySettings()
+        }
+
         stt = CactusSTT()
         lm = CactusLM()
 
@@ -132,6 +138,27 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "Opened keyboard settings")
         } catch (e: Exception) {
             Log.e(TAG, "Error opening keyboard settings", e)
+        }
+    }
+
+    private fun openAccessibilitySettings() {
+        try {
+            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+            Toast.makeText(
+                this,
+                "Look for 'PeyoKeys Screen Reader' and enable it",
+                Toast.LENGTH_LONG
+            ).show()
+            Log.d(TAG, "Opened accessibility settings")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error opening accessibility settings", e)
+            Toast.makeText(
+                this,
+                "Could not open accessibility settings",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 

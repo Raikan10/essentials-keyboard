@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -51,6 +52,8 @@ class PeyoKeysService : InputMethodService() {
     private var toolbarStatus: TextView? = null
     private var toolbarMicProgress: ProgressBar? = null
     private var toolbarDraftProgress: ProgressBar? = null
+    private var toolbarContextToggle: Switch? = null
+    private var isScreenContextEnabled = true
 
     companion object {
         private const val TAG = "PeyoKeysService"
@@ -105,6 +108,20 @@ class PeyoKeysService : InputMethodService() {
         return true
     }
 
+    private fun updateToggleColors() {
+        toolbarContextToggle?.apply {
+            if (isScreenContextEnabled) {
+                // ON state - bright colors
+                thumbTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                trackTintList = android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt()) // Green
+            } else {
+                // OFF state - dimmed colors
+                thumbTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Gray
+                trackTintList = android.content.res.ColorStateList.valueOf(0xFF444444.toInt()) // Dark gray
+            }
+        }
+    }
+
     private fun setupToolbar(view: View) {
         // Toolbar buttons and status
         toolbarMicButton = view.findViewById<Button>(R.id.toolbar_microphone)
@@ -117,6 +134,17 @@ class PeyoKeysService : InputMethodService() {
             ?: view.findViewById<ProgressBar>(R.id.toolbar_microphone_progress_num)
         toolbarDraftProgress = view.findViewById<ProgressBar>(R.id.toolbar_draft_progress)
             ?: view.findViewById<ProgressBar>(R.id.toolbar_draft_progress_num)
+        toolbarContextToggle = view.findViewById<Switch>(R.id.toolbar_context_toggle)
+            ?: view.findViewById<Switch>(R.id.toolbar_context_toggle_num)
+
+        // Setup context toggle listener
+        toolbarContextToggle?.isChecked = isScreenContextEnabled
+        updateToggleColors()
+        toolbarContextToggle?.setOnCheckedChangeListener { _, isChecked ->
+            isScreenContextEnabled = isChecked
+            updateToggleColors()
+            Log.d(TAG, "Screen context toggled: $isScreenContextEnabled")
+        }
 
         // Hold-to-speak for Transcribe button
         toolbarMicButton?.setOnTouchListener { _, event ->
@@ -399,12 +427,27 @@ class PeyoKeysService : InputMethodService() {
             return
         }
 
-        // Capture screen text for context
-        val screenText = ScreenTextManager.getScreenText(maxAgeMs = 10000)
-        if (screenText != null) {
-            Log.d(TAG, "Captured screen context: ${screenText.takeLast(500)}...")
+        // Capture screen text on-demand from accessibility service (only if toggle is enabled)
+        val screenText = if (isScreenContextEnabled) {
+            try {
+                ScreenReaderService.getInstance()?.captureScreenText()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error capturing screen text", e)
+                null
+            }
         } else {
-            Log.d(TAG, "No screen context available (enable accessibility service)")
+            Log.d(TAG, "SCREEN_CAPTURE_DEBUG: Screen context disabled by user toggle")
+            null
+        }
+
+        if (screenText != null) {
+            Log.d(TAG, "SCREEN_CAPTURE_DEBUG: Full screen text captured:")
+            Log.d(TAG, "SCREEN_CAPTURE_DEBUG: ===== START SCREEN TEXT =====")
+            Log.d(TAG, "SCREEN_CAPTURE_DEBUG: $screenText")
+            Log.d(TAG, "SCREEN_CAPTURE_DEBUG: ===== END SCREEN TEXT =====")
+            Log.d(TAG, "SCREEN_CAPTURE_DEBUG: Total length: ${screenText.length} characters")
+        } else if (isScreenContextEnabled) {
+            Log.d(TAG, "SCREEN_CAPTURE_DEBUG: No screen context available (enable accessibility service)")
         }
 
         val activeVoiceModel = VoiceModelPreferences.getActiveModel(this) ?: "whisper-base"
@@ -475,8 +518,8 @@ class PeyoKeysService : InputMethodService() {
 
                     // Add screen context if available
                     if (screenText != null && screenText.isNotBlank()) {
-                        append("\n\nUse only the text note as  additional context to answer the user's query:\n")
-                        append(screenText.takeLast(500)) // Limit to 500 chars to avoid token overflow
+                        append("\n\nUse as additional context to answer the user's query:\n")
+                        append(screenText.take(1000)) // Limit to 500 chars to avoid token overflow
                     }
                 }
 

@@ -65,7 +65,8 @@
 
         <FrameLayout
             android:layout_width="wrap_content"
-            android:layout_height="32dp">
+            android:layout_height="32dp"
+            android:layout_marginEnd="6dp">
 
             <Button
                 android:id="@+id/toolbar_draft"
@@ -91,6 +92,17 @@
                 android:visibility="gone" />
 
         </FrameLayout>
+
+        <Switch
+            android:id="@+id/toolbar_context_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:checked="true"
+            android:scaleX="0.8"
+            android:scaleY="0.8"
+            android:contentDescription="Toggle screen context"
+            android:thumbTint="#FFFFFF"
+            android:trackTint="#666666" />
 
     </LinearLayout>
 

@@ -13,31 +13,33 @@ class ScreenReaderService : AccessibilityService() {
 
     companion object {
         private const val TAG = "ScreenReaderService"
-        const val ACTION_CAPTURE_SCREEN_TEXT = "com.cactus.peyokeys.CAPTURE_SCREEN_TEXT"
+        private var instance: ScreenReaderService? = null
+
+        fun getInstance(): ScreenReaderService? = instance
     }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
+        instance = this
         Log.d(TAG, "ScreenReaderService connected")
 
-        // Configure service to receive window content changes
+        // Minimal configuration - we only need to be able to read the window when requested
         val info = AccessibilityServiceInfo().apply {
-            eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
-                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
-                    AccessibilityEvent.TYPE_VIEW_FOCUSED
+            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
                     AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
-            notificationTimeout = 100
         }
         serviceInfo = info
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // Capture screen text on relevant events
-        if (event != null) {
-            captureScreenText()
-        }
+        // No need to do anything here - we'll capture on-demand
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        instance = null
     }
 
     override fun onInterrupt() {
@@ -45,39 +47,64 @@ class ScreenReaderService : AccessibilityService() {
     }
 
     /**
-     * Capture all visible text from the screen
+     * Capture all visible text from the screen (called on-demand)
      */
-    private fun captureScreenText() {
-        try {
-            val rootNode = rootInActiveWindow ?: return
+    fun captureScreenText(): String? {
+        return try {
+            val rootNode = rootInActiveWindow ?: run {
+                Log.w(TAG, "No root node available")
+                return null
+            }
             val screenText = extractTextFromNode(rootNode)
+            rootNode.recycle()
 
             if (screenText.isNotBlank()) {
-                ScreenTextManager.updateScreenText(screenText)
+                Log.d(TAG, "Captured ${screenText.length} characters of screen text")
+                screenText
+            } else {
+                Log.d(TAG, "No text content found on screen")
+                null
             }
-
-            rootNode.recycle()
         } catch (e: Exception) {
             Log.e(TAG, "Error capturing screen text", e)
+            null
         }
     }
 
     /**
      * Recursively extract text from accessibility node tree
+     * Captures all visible text with minimal filtering
      */
     private fun extractTextFromNode(node: AccessibilityNodeInfo): String {
         val textBuilder = StringBuilder()
 
-        // Get text from current node
-        if (node.text != null && node.text.isNotBlank()) {
-            textBuilder.append(node.text.toString().trim())
-            textBuilder.append(" ")
+        // Extract text from this node
+        val nodeText = node.text
+        if (nodeText != null && nodeText.isNotEmpty()) {
+            val text = nodeText.toString().trim()
+
+            if (text.isNotEmpty()) {
+                // Add newline for longer text blocks (likely paragraphs)
+                if (text.length > 50) {
+                    textBuilder.append(text)
+                    textBuilder.append("\n")
+                } else {
+                    textBuilder.append(text)
+                    textBuilder.append(" ")
+                }
+            }
         }
 
-        // Get content description if available
-        if (node.contentDescription != null && node.contentDescription.isNotBlank()) {
-            textBuilder.append(node.contentDescription.toString().trim())
-            textBuilder.append(" ")
+        // Also get content description if text is empty
+        if (nodeText == null || nodeText.isEmpty()) {
+            val contentDesc = node.contentDescription
+            if (contentDesc != null && contentDesc.isNotEmpty()) {
+                val desc = contentDesc.toString().trim()
+                if (desc.isNotEmpty() && desc.length > 2) {
+                    textBuilder.append(desc)
+                    textBuilder.append(" ")
+                }
+            }
         }
 
         // Recursively get text from child nodes
@@ -90,13 +117,5 @@ class ScreenReaderService : AccessibilityService() {
         }
 
         return textBuilder.toString()
-    }
-
-    /**
-     * Force capture screen text (can be triggered externally)
-     */
-    fun forceCaptureScreenText(): String? {
-        captureScreenText()
-        return ScreenTextManager.getScreenText()
     }
 }
