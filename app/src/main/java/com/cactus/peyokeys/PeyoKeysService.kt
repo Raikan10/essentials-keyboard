@@ -11,6 +11,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Switch
 import android.widget.TextView
@@ -54,6 +55,7 @@ class PeyoKeysService : InputMethodService() {
     private var toolbarMicProgress: ProgressBar? = null
     private var toolbarDraftProgress: ProgressBar? = null
     private var toolbarContextToggle: Switch? = null
+    private var toolbarContextIcon: ImageView? = null
     private var isScreenContextEnabled = true
 
     companion object {
@@ -128,13 +130,24 @@ class PeyoKeysService : InputMethodService() {
     private fun updateToggleColors() {
         toolbarContextToggle?.apply {
             if (isScreenContextEnabled) {
-                // ON state - bright colors
+                // ON state - dark gray matching toolbar buttons
                 thumbTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                trackTintList = android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt()) // Green
+                trackTintList = android.content.res.ColorStateList.valueOf(0xFF3A3F47.toInt()) // Dark gray
             } else {
                 // OFF state - dimmed colors
                 thumbTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Gray
                 trackTintList = android.content.res.ColorStateList.valueOf(0xFF444444.toInt()) // Dark gray
+            }
+        }
+
+        // Update lightbulb icon color to match switch state
+        toolbarContextIcon?.apply {
+            if (isScreenContextEnabled) {
+                // ON state - dark gray (active/lit)
+                imageTintList = android.content.res.ColorStateList.valueOf(0xFF3A3F47.toInt()) // Dark gray
+            } else {
+                // OFF state - dimmed gray
+                imageTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Medium gray
             }
         }
     }
@@ -153,6 +166,8 @@ class PeyoKeysService : InputMethodService() {
             ?: view.findViewById<ProgressBar>(R.id.toolbar_draft_progress_num)
         toolbarContextToggle = view.findViewById<Switch>(R.id.toolbar_context_toggle)
             ?: view.findViewById<Switch>(R.id.toolbar_context_toggle_num)
+        toolbarContextIcon = view.findViewById<ImageView>(R.id.toolbar_context_icon)
+            ?: view.findViewById<ImageView>(R.id.toolbar_context_icon_num)
 
         // Setup context toggle listener
         toolbarContextToggle?.isChecked = isScreenContextEnabled
