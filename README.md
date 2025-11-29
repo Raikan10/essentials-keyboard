@@ -187,3 +187,4 @@ Essential Key triggers your second brain.
 
 *Voice + AI keyboard for Android*
 *Powered by [Cactus SDK](https://cactuscompute.com)*
+*This project is in no way affliated to Nothing except that it was made in a hackathon sponsored by them*
