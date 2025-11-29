@@ -148,7 +148,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             Toast.makeText(
                 this,
-                "Look for 'PeyoKeys Screen Reader' and enable it",
+                "Look for 'Essential Keyboard Screen Reader' and enable it",
                 Toast.LENGTH_LONG
             ).show()
             Log.d(TAG, "Opened accessibility settings")

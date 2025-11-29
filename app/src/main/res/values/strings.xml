@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Peyokeys</string>
-    <string name="accessibility_service_description">Allows PeyoKeys to read on-screen text to provide AI context for drafting messages. No data is sent to external servers.</string>
+    <string name="app_name">Essential Keyboard</string>
+    <string name="accessibility_service_description">Allows Essential Keyboard to read on-screen text to provide AI context for drafting messages. No data is sent to external servers.</string>
 </resources>

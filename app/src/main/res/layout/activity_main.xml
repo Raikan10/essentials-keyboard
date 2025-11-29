@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Peyokeys"
+        android:text="Essential Keyboard"
         android:textSize="32sp"
         android:textStyle="bold"
         android:textColor="?attr/colorPrimary"
@@ -43,7 +43,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="1. Tap the button below to enable Peyokeys in system settings"
+                android:text="1. Tap the button below to enable Essential Keyboard in system settings"
                 android:textSize="14sp"
                 android:textColor="?android:attr/textColorSecondary"
                 android:layout_marginBottom="4dp"
@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2. Select Peyokeys and enable it"
+                android:text="2. Select Essential Keyboard and enable it"
                 android:textSize="14sp"
                 android:textColor="?android:attr/textColorSecondary"
                 android:layout_marginBottom="4dp"
@@ -61,7 +61,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="3. Go back and set Peyokeys as your default keyboard"
+                android:text="3. Go back and set Essential Keyboard as your default keyboard"
                 android:textSize="14sp"
                 android:textColor="?android:attr/textColorSecondary"
                 android:layout_marginBottom="12dp"

@@ -108,6 +108,15 @@ class PeyoKeysService : InputMethodService() {
         return true
     }
 
+    private fun getCurrentAppPackageName(): String? {
+        return try {
+            currentInputEditorInfo?.packageName
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting current app package name", e)
+            null
+        }
+    }
+
     private fun updateToggleColors() {
         toolbarContextToggle?.apply {
             if (isScreenContextEnabled) {
@@ -427,6 +436,11 @@ class PeyoKeysService : InputMethodService() {
             return
         }
 
+        // Detect current app package name
+        val currentPackage = getCurrentAppPackageName()
+        val appType = SystemPrompts.getAppType(currentPackage)
+        Log.d(TAG, "Current app: $currentPackage (type: $appType)")
+
         // Capture screen text on-demand from accessibility service (only if toggle is enabled)
         val screenText = if (isScreenContextEnabled) {
             try {
@@ -512,16 +526,12 @@ class PeyoKeysService : InputMethodService() {
                     return@launch
                 }
 
-                // Create prompt for LM with screen context if available
-                val systemPrompt = buildString {
-                    append("/no_think You are a helpful writing assistant. Generate the requested content concisely.")
-
-                    // Add screen context if available
-                    if (screenText != null && screenText.isNotBlank()) {
-                        append("\n\nUse as additional context to answer the user's query:\n")
-                        append(screenText.take(1000)) // Limit to 500 chars to avoid token overflow
-                    }
-                }
+                // Create app-specific system prompt with screen context (if toggle is enabled)
+                val systemPrompt = SystemPrompts.getSystemPrompt(
+                    packageName = currentPackage,
+                    screenContext = screenText // Will be null if toggle is off
+                )
+                Log.d(TAG, "Using $appType system prompt for package: $currentPackage")
 
                 // Stop sequences to filter out
                 val stopSequences = listOf("<|im_end|>", "<end_of_turn>")

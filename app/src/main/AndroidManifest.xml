@@ -25,7 +25,7 @@
 
         <service
             android:name=".PeyoKeysService"
-            android:label="PeyoKeys"
+            android:label="Essential Keyboard"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true">
             <intent-filter>
@@ -38,7 +38,7 @@
 
         <service
             android:name=".ScreenReaderService"
-            android:label="PeyoKeys Screen Reader"
+            android:label="Essential Keyboard Screen Reader"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true">
             <intent-filter>
