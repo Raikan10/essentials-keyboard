@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.inputmethodservice.InputMethodService
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -115,6 +116,13 @@ class PeyoKeysService : InputMethodService() {
             Log.e(TAG, "Error getting current app package name", e)
             null
         }
+    }
+
+    private fun performHapticFeedback(view: View) {
+        view.performHapticFeedback(
+            HapticFeedbackConstants.KEYBOARD_TAP,
+            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+        )
     }
 
     private fun updateToggleColors() {
@@ -232,6 +240,7 @@ class PeyoKeysService : InputMethodService() {
         // Shift key
         shiftButton = view.findViewById<ImageButton>(R.id.key_shift)
         shiftButton?.setOnClickListener {
+            performHapticFeedback(it)
             isShifted = !isShifted
             updateLetterCase()
             updateShiftIcon()
@@ -239,36 +248,42 @@ class PeyoKeysService : InputMethodService() {
 
         // Backspace key
         view.findViewById<ImageButton>(R.id.key_backspace).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.deleteSurroundingText(1, 0)
             checkAndUpdateShiftState()
         }
 
         // Numbers/symbols key
         view.findViewById<Button>(R.id.key_numbers).setOnClickListener {
+            performHapticFeedback(it)
             isNumbersLayout = true
             setInputView(onCreateInputView())
         }
 
         // Comma key
         view.findViewById<Button>(R.id.key_comma).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(",", 1)
             checkAndUpdateShiftState()
         }
 
         // Space key
         view.findViewById<Button>(R.id.key_space).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(" ", 1)
             checkAndUpdateShiftState()
         }
 
         // Period key
         view.findViewById<Button>(R.id.key_period).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(".", 1)
             checkAndUpdateShiftState()
         }
 
         // Return key
         view.findViewById<ImageButton>(R.id.key_return).setOnClickListener {
+            performHapticFeedback(it)
             handleReturnKey()
         }
 
@@ -282,6 +297,7 @@ class PeyoKeysService : InputMethodService() {
         letterButtons[letter[0]] = button
 
         button.setOnClickListener {
+            performHapticFeedback(it)
             val textToInsert = if (isShifted) letter.uppercase() else letter.lowercase()
             currentInputConnection?.commitText(textToInsert, 1)
             if (isShifted) {
@@ -707,38 +723,45 @@ class PeyoKeysService : InputMethodService() {
 
         // Backspace
         view.findViewById<ImageButton>(R.id.key_backspace_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.deleteSurroundingText(1, 0)
         }
 
         // ABC key to switch back to letters
         view.findViewById<Button>(R.id.key_abc).setOnClickListener {
+            performHapticFeedback(it)
             isNumbersLayout = false
             setInputView(onCreateInputView())
         }
 
         // Comma
         view.findViewById<Button>(R.id.key_comma_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(",", 1)
         }
 
         // Space key
         view.findViewById<Button>(R.id.key_space_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(" ", 1)
         }
 
         // Period
         view.findViewById<Button>(R.id.key_period_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(".", 1)
         }
 
         // Return
         view.findViewById<ImageButton>(R.id.key_return_num).setOnClickListener {
+            performHapticFeedback(it)
             handleReturnKey()
         }
     }
 
     private fun setupSimpleKey(view: View, buttonId: Int, text: String) {
         view.findViewById<Button>(buttonId).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(text, 1)
         }
     }
