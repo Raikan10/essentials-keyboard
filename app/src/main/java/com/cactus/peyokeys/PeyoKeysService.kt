@@ -56,7 +56,10 @@ class PeyoKeysService : InputMethodService() {
     private var toolbarDraftProgress: ProgressBar? = null
     private var toolbarContextToggle: Switch? = null
     private var toolbarContextIcon: ImageView? = null
+    private var toolbarMemoryToggle: Switch? = null
+    private var toolbarMemoryIcon: ImageView? = null
     private var isScreenContextEnabled = true
+    private var isMemoryContextEnabled = true
 
     companion object {
         private const val TAG = "PeyoKeysService"
@@ -150,6 +153,26 @@ class PeyoKeysService : InputMethodService() {
                 imageTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Medium gray
             }
         }
+
+        // Memory toggle colors
+        toolbarMemoryToggle?.apply {
+            if (isMemoryContextEnabled) {
+                thumbTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                trackTintList = android.content.res.ColorStateList.valueOf(0xFF3A3F47.toInt()) // Dark gray
+            } else {
+                thumbTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Gray
+                trackTintList = android.content.res.ColorStateList.valueOf(0xFF444444.toInt()) // Dark gray
+            }
+        }
+
+        // Update brain icon color to match switch state
+        toolbarMemoryIcon?.apply {
+            if (isMemoryContextEnabled) {
+                imageTintList = android.content.res.ColorStateList.valueOf(0xFF3A3F47.toInt()) // Dark gray
+            } else {
+                imageTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Medium gray
+            }
+        }
     }
 
     private fun setupToolbar(view: View) {
@@ -168,6 +191,10 @@ class PeyoKeysService : InputMethodService() {
             ?: view.findViewById<Switch>(R.id.toolbar_context_toggle_num)
         toolbarContextIcon = view.findViewById<ImageView>(R.id.toolbar_context_icon)
             ?: view.findViewById<ImageView>(R.id.toolbar_context_icon_num)
+        toolbarMemoryToggle = view.findViewById<Switch>(R.id.toolbar_memory_toggle)
+            ?: view.findViewById<Switch>(R.id.toolbar_memory_toggle_num)
+        toolbarMemoryIcon = view.findViewById<ImageView>(R.id.toolbar_memory_icon)
+            ?: view.findViewById<ImageView>(R.id.toolbar_memory_icon_num)
 
         // Setup context toggle listener
         toolbarContextToggle?.isChecked = isScreenContextEnabled
@@ -176,6 +203,14 @@ class PeyoKeysService : InputMethodService() {
             isScreenContextEnabled = isChecked
             updateToggleColors()
             Log.d(TAG, "Screen context toggled: $isScreenContextEnabled")
+        }
+
+        // Setup memory toggle listener
+        toolbarMemoryToggle?.isChecked = isMemoryContextEnabled
+        toolbarMemoryToggle?.setOnCheckedChangeListener { _, isChecked ->
+            isMemoryContextEnabled = isChecked
+            updateToggleColors()
+            Log.d(TAG, "Memory context toggled: $isMemoryContextEnabled")
         }
 
         // Hold-to-speak for Transcribe button
@@ -495,6 +530,29 @@ class PeyoKeysService : InputMethodService() {
             Log.d(TAG, "SCREEN_CAPTURE_DEBUG: No screen context available (enable accessibility service)")
         }
 
+        // Capture memory context on-demand (only if toggle is enabled)
+        val memoryText = if (isMemoryContextEnabled) {
+            try {
+                MemoryReaderService.getMemoryContext()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error retrieving memory context", e)
+                null
+            }
+        } else {
+            Log.d(TAG, "MEMORY_CONTEXT_DEBUG: Memory context disabled by user toggle")
+            null
+        }
+
+        if (memoryText != null) {
+            Log.d(TAG, "MEMORY_CONTEXT_DEBUG: Memory retrieved:")
+            Log.d(TAG, "MEMORY_CONTEXT_DEBUG: ===== START MEMORY =====")
+            Log.d(TAG, "MEMORY_CONTEXT_DEBUG: $memoryText")
+            Log.d(TAG, "MEMORY_CONTEXT_DEBUG: ===== END MEMORY =====")
+            Log.d(TAG, "MEMORY_CONTEXT_DEBUG: Total length: ${memoryText.length} characters")
+        } else if (isMemoryContextEnabled) {
+            Log.d(TAG, "MEMORY_CONTEXT_DEBUG: No memory context available")
+        }
+
         val activeVoiceModel = VoiceModelPreferences.getActiveModel(this) ?: "whisper-base"
         val activeLMModel = LMModelPreferences.getActiveModel(this)
         Log.d(TAG, "Starting draft recording, active model: $activeVoiceModel")
@@ -557,12 +615,19 @@ class PeyoKeysService : InputMethodService() {
                     return@launch
                 }
 
-                // Create app-specific system prompt with screen context (if toggle is enabled)
+                // Create app-specific system prompt with screen context and memory (if toggles are enabled)
                 val systemPrompt = SystemPrompts.getSystemPrompt(
                     packageName = currentPackage,
-                    screenContext = screenText // Will be null if toggle is off
+                    screenContext = screenText, // Will be null if toggle is off
+                    memoryContext = memoryText  // Will be null if toggle is off
                 )
                 Log.d(TAG, "Using $appType system prompt for package: $currentPackage")
+                if (screenText != null) {
+                    Log.d(TAG, "Screen context: ${screenText.length} chars")
+                }
+                if (memoryText != null) {
+                    Log.d(TAG, "Memory context: ${memoryText.length} chars")
+                }
 
                 // Stop sequences to filter out
                 val stopSequences = listOf("<|im_end|>", "<end_of_turn>")

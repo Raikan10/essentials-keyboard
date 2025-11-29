@@ -26,20 +26,26 @@ object SystemPrompts {
     /**
      * Get the appropriate system prompt based on the app package name
      */
-    fun getSystemPrompt(packageName: String?, screenContext: String?): String {
+    fun getSystemPrompt(packageName: String?, screenContext: String?, memoryContext: String? = null): String {
         val appSpecificPrompt = when {
             packageName != null && EMAIL_APPS.contains(packageName) -> getEmailPrompt()
             packageName != null && NOTES_APPS.contains(packageName) -> getNotesPrompt()
             else -> getGeneralPrompt()
         }
 
-        // Build complete prompt: base guidelines + app-specific + context
+        // Build complete prompt: base guidelines + app-specific + memory + screen context
         return buildString {
             append(getBasePrompt())
             append("\n\n")
             append(appSpecificPrompt)
 
-            // Always add screen context if available (respects user's toggle from caller)
+            // Add memory context first (if available)
+            if (memoryContext != null && memoryContext.isNotBlank()) {
+                append("\n\nUser's Memory (important facts to remember):\n")
+                append(memoryContext.take(2000)) // Limit to 2000 chars to avoid token overflow
+            }
+
+            // Add screen context second (if available)
             if (screenContext != null && screenContext.isNotBlank()) {
                 append("\n\nContext (what the user is currently viewing):\n")
                 append(screenContext.take(2000)) // Limit to 2000 chars to avoid token overflow

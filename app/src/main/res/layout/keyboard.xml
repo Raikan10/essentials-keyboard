@@ -121,6 +121,34 @@
                 android:trackTint="#666666" />
         </LinearLayout>
 
+        <!-- Memory toggle group: brain icon + switch -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginStart="4dp">
+
+            <ImageView
+                android:id="@+id/toolbar_memory_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_brain"
+                android:contentDescription="Memory indicator"
+                android:layout_marginEnd="4dp" />
+
+            <Switch
+                android:id="@+id/toolbar_memory_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:checked="true"
+                android:scaleX="0.8"
+                android:scaleY="0.8"
+                android:contentDescription="Toggle memory context"
+                android:thumbTint="#FFFFFF"
+                android:trackTint="#666666" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <!-- Row 1: Q W E R T Y U I O P -->
