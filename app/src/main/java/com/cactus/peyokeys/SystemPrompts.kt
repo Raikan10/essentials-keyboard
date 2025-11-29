@@ -41,7 +41,7 @@ object SystemPrompts {
 
             // Always add screen context if available (respects user's toggle from caller)
             if (screenContext != null && screenContext.isNotBlank()) {
-                append("\n\nScreen context (what the user is currently viewing):\n")
+                append("\n\nContext (what the user is currently viewing):\n")
                 append(screenContext.take(2000)) // Limit to 2000 chars to avoid token overflow
             }
         }
@@ -69,7 +69,11 @@ Guidelines:
 - Use appropriate greetings and closings based on the formality of the conversation
 - Keep responses brief unless a detailed response is specifically requested
 - Do not include subject lines unless explicitly asked
-- Generate only the email body text"""
+- Generate only the email body text
+- End emails always with 
+Regards,
+Hackathon Tester
+ - The senders name will always be available in the context"""
     }
 
     private fun getNotesPrompt(): String {

@@ -5,11 +5,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.inputmethodservice.InputMethodService
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Switch
 import android.widget.TextView
@@ -53,6 +55,7 @@ class PeyoKeysService : InputMethodService() {
     private var toolbarMicProgress: ProgressBar? = null
     private var toolbarDraftProgress: ProgressBar? = null
     private var toolbarContextToggle: Switch? = null
+    private var toolbarContextIcon: ImageView? = null
     private var isScreenContextEnabled = true
 
     companion object {
@@ -117,16 +120,34 @@ class PeyoKeysService : InputMethodService() {
         }
     }
 
+    private fun performHapticFeedback(view: View) {
+        view.performHapticFeedback(
+            HapticFeedbackConstants.KEYBOARD_TAP,
+            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+        )
+    }
+
     private fun updateToggleColors() {
         toolbarContextToggle?.apply {
             if (isScreenContextEnabled) {
-                // ON state - bright colors
+                // ON state - dark gray matching toolbar buttons
                 thumbTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                trackTintList = android.content.res.ColorStateList.valueOf(0xFF4CAF50.toInt()) // Green
+                trackTintList = android.content.res.ColorStateList.valueOf(0xFF3A3F47.toInt()) // Dark gray
             } else {
                 // OFF state - dimmed colors
                 thumbTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Gray
                 trackTintList = android.content.res.ColorStateList.valueOf(0xFF444444.toInt()) // Dark gray
+            }
+        }
+
+        // Update lightbulb icon color to match switch state
+        toolbarContextIcon?.apply {
+            if (isScreenContextEnabled) {
+                // ON state - dark gray (active/lit)
+                imageTintList = android.content.res.ColorStateList.valueOf(0xFF3A3F47.toInt()) // Dark gray
+            } else {
+                // OFF state - dimmed gray
+                imageTintList = android.content.res.ColorStateList.valueOf(0xFF999999.toInt()) // Medium gray
             }
         }
     }
@@ -145,6 +166,8 @@ class PeyoKeysService : InputMethodService() {
             ?: view.findViewById<ProgressBar>(R.id.toolbar_draft_progress_num)
         toolbarContextToggle = view.findViewById<Switch>(R.id.toolbar_context_toggle)
             ?: view.findViewById<Switch>(R.id.toolbar_context_toggle_num)
+        toolbarContextIcon = view.findViewById<ImageView>(R.id.toolbar_context_icon)
+            ?: view.findViewById<ImageView>(R.id.toolbar_context_icon_num)
 
         // Setup context toggle listener
         toolbarContextToggle?.isChecked = isScreenContextEnabled
@@ -232,6 +255,7 @@ class PeyoKeysService : InputMethodService() {
         // Shift key
         shiftButton = view.findViewById<ImageButton>(R.id.key_shift)
         shiftButton?.setOnClickListener {
+            performHapticFeedback(it)
             isShifted = !isShifted
             updateLetterCase()
             updateShiftIcon()
@@ -239,36 +263,42 @@ class PeyoKeysService : InputMethodService() {
 
         // Backspace key
         view.findViewById<ImageButton>(R.id.key_backspace).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.deleteSurroundingText(1, 0)
             checkAndUpdateShiftState()
         }
 
         // Numbers/symbols key
         view.findViewById<Button>(R.id.key_numbers).setOnClickListener {
+            performHapticFeedback(it)
             isNumbersLayout = true
             setInputView(onCreateInputView())
         }
 
         // Comma key
         view.findViewById<Button>(R.id.key_comma).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(",", 1)
             checkAndUpdateShiftState()
         }
 
         // Space key
         view.findViewById<Button>(R.id.key_space).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(" ", 1)
             checkAndUpdateShiftState()
         }
 
         // Period key
         view.findViewById<Button>(R.id.key_period).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(".", 1)
             checkAndUpdateShiftState()
         }
 
         // Return key
         view.findViewById<ImageButton>(R.id.key_return).setOnClickListener {
+            performHapticFeedback(it)
             handleReturnKey()
         }
 
@@ -282,6 +312,7 @@ class PeyoKeysService : InputMethodService() {
         letterButtons[letter[0]] = button
 
         button.setOnClickListener {
+            performHapticFeedback(it)
             val textToInsert = if (isShifted) letter.uppercase() else letter.lowercase()
             currentInputConnection?.commitText(textToInsert, 1)
             if (isShifted) {
@@ -707,38 +738,45 @@ class PeyoKeysService : InputMethodService() {
 
         // Backspace
         view.findViewById<ImageButton>(R.id.key_backspace_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.deleteSurroundingText(1, 0)
         }
 
         // ABC key to switch back to letters
         view.findViewById<Button>(R.id.key_abc).setOnClickListener {
+            performHapticFeedback(it)
             isNumbersLayout = false
             setInputView(onCreateInputView())
         }
 
         // Comma
         view.findViewById<Button>(R.id.key_comma_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(",", 1)
         }
 
         // Space key
         view.findViewById<Button>(R.id.key_space_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(" ", 1)
         }
 
         // Period
         view.findViewById<Button>(R.id.key_period_num).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(".", 1)
         }
 
         // Return
         view.findViewById<ImageButton>(R.id.key_return_num).setOnClickListener {
+            performHapticFeedback(it)
             handleReturnKey()
         }
     }
 
     private fun setupSimpleKey(view: View, buttonId: Int, text: String) {
         view.findViewById<Button>(buttonId).setOnClickListener {
+            performHapticFeedback(it)
             currentInputConnection?.commitText(text, 1)
         }
     }
